@@ -7,42 +7,8 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE)
-
-library(dplyr)
-
-# loading in old items
-old_abs = read.table("../data/old_abstracts.csv", sep=",", header=TRUE)
-old_abs$conc[old_abs$conc=="-"] = NA
-
-# loading in items matched on concreteness and word length from MRC
-matched_abs = read.table("../data/matched_abstracts.csv", sep=",", header=TRUE)
-
-# filtering out words that are already in old set
-matched_abs = subset(matched_abs, !(matched_abs$word %in% old_abs$word))
-
-# log-transforming frequencies
-old_abs$freq = log(old_abs$freq)
-matched_abs$freq = log(matched_abs$freq)
-
-# sampling items from matched_abs to fit distribution of old items on: 1) concreteness, 2) word length, 3) frequency
-new_abs = data.frame(word=NULL, conc=NULL, word_len=NULL, freq=NULL)
-mean_conc = mean(matched_abs$conc)  # to deal with missing values
-row_index = 1
-for (row_index in 1:nrow(old_abs)){
-  row = old_abs[row_index, ]
-  conc = as.numeric(row$conc)
-  freq = as.numeric(row$freq)
-  if (is.na(conc)){
-    conc = mean_conc
-  }
-  len = as.numeric(row$word_len)
-  filtered_abs = matched_abs[((matched_abs$conc<conc+15)&(matched_abs$conc>conc-15)&(matched_abs$word_len<len+3)&(matched_abs$word_len>len-3)
-                              &(matched_abs$freq)<freq+2.5)&(matched_abs$freq)>freq-2.5,]
-  sample = sample_n(filtered_abs, 1)
-  matched_abs = matched_abs[!(matched_abs$word == sample$word),]
-  new_abs = rbind(new_abs, sample)
-  row_index = row_index + 1
-}
+new_abs = read.table("../data/new_abstracts.csv", header=TRUE)
+old_abs = read.table("../data/old_abstracts.csv", header=TRUE)
 ```
 
 # Comparing old and new items on concreteness values
